@@ -15,6 +15,3 @@ debug:
 
 clean:
 	-rm -rf bin/
-
-get-deps:
-	sudo apt-get install -y gtk-3-dev

@@ -27,14 +27,14 @@
 #define AUTO 0
 
 typedef unsigned int UInt;
-typedef uint8_least_t TinyInt;
 enum PaneStyle { VERTICAL, HORIZONTAL };
 
 /**
  * Window widget
  */
 GtkWidget *NewWindow(char *title,
-                     UInt size[2],
+                     UInt width,
+                     UInt height,
                      GtkWidget *header,
                      bool enable_scrolling,
                      char *icon_path,
@@ -47,7 +47,7 @@ GtkWidget *NewWindow(char *title,
   gtk_window_set_default_size(GTK_WINDOW(window), width, height);
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
-  if(is_parent == FALSE)
+  if (is_parent == FALSE)
     gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
 
   if (is_parent == TRUE) {
@@ -62,7 +62,7 @@ GtkWidget *NewWindow(char *title,
     gtk_window_set_titlebar(GTK_WINDOW(window), header);
   }
 
-  if(enable_scrolling == TRUE) {
+  if (enable_scrolling == TRUE) {
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
     GtkWidget *scroll_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
     GtkWidget *window_scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -71,32 +71,31 @@ GtkWidget *NewWindow(char *title,
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(window_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_container_set_border_width(GTK_CONTAINER(window_scroll), 10);
     gtk_container_add(GTK_CONTAINER(window_scroll), scroll_box);
-    tmp = (void *)scroll_box;
+    tmp = (void *) scroll_box;
   } else {
     gtk_container_set_border_width(GTK_CONTAINER(window), 10);
-    tmp = (void *)window;
+    tmp = (void *) window;
   }
   gtk_widget_show_all(window);
-  return (GtkWidget *)tmp;
+  return (GtkWidget *) tmp;
 }
 
 /**
  * Header widget
  */
 GtkWidget *NewHeaderBar(char *title, int items_count, ...) {
-  GtkWidget *headerbar;
-  headerbar = gtk_header_bar_new();
-  gtk_header_bar_set_title(GTK_HEADER_BAR(headerbar), title);
-  gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(headerbar), TRUE);
+  GtkWidget *header_bar;
+  header_bar = gtk_header_bar_new();
+  gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), title);
+  gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), TRUE);
 
   va_list btns;
   va_start(btns, items_count);
-  for(int i = 0; i < items_count; i++) {
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), va_arg(btns, GtkWidget *));
-  }
+  for (int i = 0; i < items_count; i++)
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), va_arg(btns, GtkWidget * ));
   va_end(btns);
 
-  return headerbar;
+  return header_bar;
 }
 
 /**
@@ -105,7 +104,7 @@ GtkWidget *NewHeaderBar(char *title, int items_count, ...) {
 GtkWidget *NewPane(char *title,
                    PaneStyle pane_style,
                    UInt size[2] = {AUTO, AUTO},
-                   TinyInt cell_count = 1,
+                   unsigned short cell_count = 1,
                    GtkWidget *parent = NULL,
                    bool dynamic_size = false);
 
@@ -157,13 +156,13 @@ GtkWidget *NewBigButton(char *title, char *description, char *name) {
 GtkWidget *NewSwitchBox(bool is_active) {
   GtkWidget *switchbox;
   switchbox = gtk_switch_new();
-  if(is_active == TRUE)
+  if (is_active == TRUE)
     gtk_switch_set_active(GTK_SWITCH(switchbox), TRUE);
   return switchbox;
 }
 
 int GetSwitchValue(GtkWidget *switchbox) {
-  if(gtk_switch_get_active(GTK_SWITCH(switchbox)) == TRUE)
+  if (gtk_switch_get_active(GTK_SWITCH(switchbox)) == TRUE)
     return 1;
   return 0;
 }
@@ -171,15 +170,21 @@ int GetSwitchValue(GtkWidget *switchbox) {
 /**
  * Input widget
  */
-GtkWidget *NewInput(char *placeholder, char *value, bool is_multiline, int max_length, char *name, int width, int height) {
+GtkWidget *NewInput(char *placeholder,
+                    char *value,
+                    bool is_multiline,
+                    int max_length,
+                    char *name,
+                    int width,
+                    int height) {
   GtkWidget *entry;
-  if(is_multiline == FALSE) {
+  if (is_multiline == FALSE) {
     //Single line input
     entry = gtk_entry_new();
     gtk_entry_set_max_length(GTK_ENTRY(entry), max_length);
-    if(placeholder != NULL)
+    if (placeholder != NULL)
       gtk_entry_set_placeholder_text(GTK_ENTRY(entry), placeholder);
-    if(value != NULL)
+    if (value != NULL)
       gtk_entry_set_text(GTK_ENTRY(entry), value);
   } else {
     //Multi line input
@@ -193,7 +198,7 @@ GtkWidget *NewInput(char *placeholder, char *value, bool is_multiline, int max_l
 
     gtk_text_view_set_accepts_tab(GTK_TEXT_VIEW(entry), TRUE);
 
-    char *default_value = (value!=NULL) ? value : placeholder;
+    char *default_value = (value != NULL) ? value : placeholder;
     if (default_value != NULL) {
       GtkTextBuffer *bd = gtk_text_buffer_new(NULL);
       gtk_text_buffer_set_text(bd, default_value, strlen(default_value));
@@ -204,15 +209,15 @@ GtkWidget *NewInput(char *placeholder, char *value, bool is_multiline, int max_l
   return entry;
 }
 
-char* GetEntryText(GtkWidget *textbox, bool is_multiline) {
+char *GetEntryText(GtkWidget *textbox, bool is_multiline) {
   char *text;
-  if(is_multiline == TRUE) {
+  if (is_multiline == TRUE) {
     GtkTextIter s, n;
     GtkTextBuffer *tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textbox));
     gtk_text_buffer_get_bounds(tb, &s, &n);
     text = gtk_text_buffer_get_text(tb, &s, &n, FALSE);
   } else {
-    text = (char *)gtk_entry_get_text(GTK_ENTRY(textbox));
+    text = (char *) gtk_entry_get_text(GTK_ENTRY(textbox));
   }
   return text;
 }
@@ -235,7 +240,7 @@ GtkWidget *NewLabel(char *text, bool is_title) {
 
 GtkWidget *NewAlert(char *title, char *description, char *name) {
   GtkWidget *t_label = gtk_label_new(NULL);
-  char *tmp_text = create_title_text(title);
+  char *tmp_text = NewTitleText(title);
   gtk_label_set_markup(GTK_LABEL(t_label), tmp_text);
 
   GtkWidget *d_label = gtk_label_new(description);
@@ -265,8 +270,8 @@ char *NewTitleText(char *title) {
  */
 void LoadCss(char *path) {
   GtkCssProvider *css_provider = gtk_css_provider_new();
-  gtk_css_provider_load_from_path(css_provider, (const gchar *)path, NULL);
-  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),   \
+  gtk_css_provider_load_from_path(css_provider, (const gchar *) path, NULL);
+  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), \
                                             GTK_STYLE_PROVIDER(css_provider),
                                             GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
